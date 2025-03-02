@@ -2,7 +2,7 @@
 .text
 
 main:
-    li a0, 69
+    li a0, 65
     li a7, 1
     ecall
            
