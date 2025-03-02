@@ -10,13 +10,12 @@ main:
     li a7, 5       
     ecall
 
-    mv a0, a0      
-
     jal ra, print_int
 
     mv a0, a1      
 
-    li a7, 4	#This prints the string to verify the results
+    la a0, buffer
+    li a7, 34
     ecall
 
     li a7, 10
