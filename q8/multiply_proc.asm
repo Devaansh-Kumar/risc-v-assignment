@@ -1,44 +1,67 @@
-# program for multiplying two numbers
 .data
-num1: .word 7   # First number
-num2: .word 5   # Second number
-result: .word 0 # Placeholder for the result
+prompt: .string "Enter num: "
+answer:	.string "Product is: "
+result: .word  0     # Store the result
 
 .text
 .globl main
 
 main:
-    # Load numbers into registers
-    la a0, num1  # Load address of num1
-    lw a1, 0(a0) # Load num1 into a1
-    la a0, num2  # Load address of num2
-    lw a2, 0(a0) # Load num2 into a2
-
-    # Call the multiply procedure
-    jal ra, multiply_proc
-
-    # Store result in memory
-    la a0, result
-    sw a0, 0(a0)
-
-    # Exit the program
-    li a0, 0   # Set return value to 0
-    li a7, 93  # Correct exit syscall for RV64I
+    # Print prompt message
+    la a0, prompt
+    li a7, 4
     ecall
 
-# Multiplication procedure using only RV64I instructions
-multiply_proc:
-    li a3, 0       # a3 will store the result (initialize to 0)
-    li a4, 0       # Counter
+    # Read integer input
+    li a7, 5
+    ecall
+    mv s0, a0
+    
+    # Print prompt message
+    la a0, prompt
+    li a7, 4
+    ecall
 
-loop:
-    beqz a2, done  # If multiplier is 0, exit loop
-    add a3, a3, a1 # Add multiplicand to result
-    addi a2, a2, -1 # Decrement multiplier
-    j loop         # Repeat
+    # Read integer input
+    li a7, 5
+    ecall
+    mv s1, a0
 
-done:
-    mv a0, a3      # Store result in a0 (return value)
+    mv a0, s0
+    mv a1, s1
+
+    # Call multiply_proc
+    call multiply_proc
+
+    # Store the result in memory
+    la t1, result
+    sw a0, 0(t1)
+    
+    # Print answer
+    la a0, answer
+    li a7, 4
+    ecall
+    lw a0, 0(t1)
     li a7, 1
     ecall
-    ret
+
+    # Exit the program
+    li a7, 10
+    ecall
+
+multiply_proc:
+    # a0 = num1, a1 = num2
+    li a2, 0      # Result initialized to 0
+
+loop:
+    andi t0, a1, 1      # Check if LSB of a1 is 1
+    beqz t0, skip_add   # If LSB is 0, skip addition
+    add a2, a2, a0      # Add num1 to result
+
+skip_add:
+    slli a0, a0, 1      # Left shift num1 (multiply by 2)
+    srli a1, a1, 1      # Right shift num2 (divide by 2)
+    bnez a1, loop       # Repeat while num2 is not 0
+
+    mv a0, a2           # Move result to a0 (return value)
+    ret                 # Return to caller
